@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="light"> <!-- Default to light theme -->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,21 +13,31 @@
     <!-- Font Awesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <style>
-        /* Custom styles */
+        /* Custom base styles */
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #0f172a; /* slate-900 */
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
         #particles-js {
-            position: absolute;
+            position: fixed;
             width: 100%;
             height: 100%;
+            top: 0;
+            left: 0;
             z-index: -1;
         }
-        .glass-card {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
+        /* Light theme card */
+        .card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        /* Dark theme card */
+        .dark .card {
+            background: rgba(30, 41, 59, 0.5); /* slate-800/50 */
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
         .btn-gradient {
@@ -38,48 +48,72 @@
             transform: translateY(-2px);
             box-shadow: 0 10px 20px rgba(0,0,0,0.2);
         }
-        /* Custom scrollbar for URL history */
+        /* Custom scrollbar */
         .history-container::-webkit-scrollbar {
             width: 8px;
         }
         .history-container::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(0, 0, 0, 0.1);
             border-radius: 10px;
         }
+        .dark .history-container::-webkit-scrollbar-track {
+             background: rgba(255, 255, 255, 0.1);
+        }
         .history-container::-webkit-scrollbar-thumb {
-            background: #4f46e5;
+            background: #6366f1; /* indigo-500 */
             border-radius: 10px;
         }
         .history-container::-webkit-scrollbar-thumb:hover {
-            background: #7c3aed;
+            background: #4f46e5; /* indigo-600 */
         }
     </style>
+    <script>
+        // Set theme on page load
+        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+
+        // Tailwind config for dark mode
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
 </head>
-<body class="text-white">
+<body class="bg-gray-100 text-slate-800 dark:bg-slate-900 dark:text-slate-200">
     <!-- Particle background container -->
     <div id="particles-js"></div>
+
+    <!-- Theme Toggle Button -->
+    <div class="absolute top-4 right-4">
+        <button id="theme-toggle" class="p-2 rounded-full text-slate-500 dark:text-slate-400 hover:bg-gray-200 dark:hover:bg-slate-800 focus:outline-none">
+            <i id="theme-toggle-dark-icon" class="fa-solid fa-moon hidden"></i>
+            <i id="theme-toggle-light-icon" class="fa-solid fa-sun hidden"></i>
+        </button>
+    </div>
 
     <div class="container mx-auto px-4 py-8 flex flex-col items-center justify-center min-h-screen">
         
         <!-- Main Card -->
-        <div class="glass-card rounded-2xl p-6 md:p-8 w-full max-w-2xl shadow-2xl">
+        <div class="card rounded-2xl p-6 md:p-8 w-full max-w-2xl shadow-2xl">
             <div class="text-center mb-8">
-                <h1 class="text-4xl md:text-5xl font-black tracking-tight">Quantum Shortener</h1>
-                <p class="text-slate-400 mt-2">The smartest link shortener in the universe</p>
+                <h1 class="text-3xl md:text-5xl font-black tracking-tight text-slate-900 dark:text-white">Quantum Shortener</h1>
+                <p class="text-gray-600 dark:text-slate-400 mt-2">The smartest link shortener in the universe</p>
             </div>
 
             <!-- Form -->
             <form method="POST" class="flex flex-col space-y-4">
                 {% csrf_token %}
                 <div class="relative">
-                    <i class="fa-solid fa-link absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                    <i class="fa-solid fa-link absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-500"></i>
                     <input type="url" name="original_url" placeholder="Enter your long URL to shorten..." required
-                           class="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 pl-12 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all">
+                           class="w-full bg-gray-200 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg p-3 pl-12 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all text-slate-800 dark:text-slate-200">
                 </div>
                 <div class="relative">
-                    <i class="fa-solid fa-wand-magic-sparkles absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                    <i class="fa-solid fa-wand-magic-sparkles absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-500"></i>
                     <input type="text" name="custom_code" placeholder="Optional: Enter a custom alias"
-                           class="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 pl-12 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all">
+                           class="w-full bg-gray-200 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg p-3 pl-12 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all text-slate-800 dark:text-slate-200">
                 </div>
                 <button type="submit" class="btn-gradient text-white font-bold rounded-lg p-3 text-lg shadow-lg">
                     Shorten!
@@ -88,7 +122,7 @@
 
             <!-- Error Message Display -->
             {% if error %}
-            <div class="mt-4 bg-red-500/20 border border-red-500 text-red-300 px-4 py-3 rounded-lg text-center" role="alert">
+            <div class="mt-4 bg-red-500/10 dark:bg-red-500/20 border border-red-500 text-red-700 dark:text-red-300 px-4 py-3 rounded-lg text-center" role="alert">
                 <strong class="font-bold">Oops!</strong>
                 <span class="block sm:inline">{{ error }}</span>
             </div>
@@ -96,13 +130,13 @@
 
             <!-- Result Display -->
             {% if short_url %}
-            <div class="mt-8 p-6 bg-slate-800 rounded-2xl border border-slate-700">
-                <p class="text-slate-400 font-semibold text-center">Your quantum link is ready!</p>
+            <div class="mt-8 p-6 bg-gray-200/50 dark:bg-slate-800/70 rounded-2xl border border-gray-300/50 dark:border-slate-700">
+                <p class="text-gray-600 dark:text-slate-400 font-semibold text-center">Your quantum link is ready!</p>
                 <div class="mt-4 flex flex-col md:flex-row items-center gap-4">
                     <div class="flex-grow w-full">
-                        <div class="flex items-center bg-slate-900 rounded-lg p-3 border border-slate-600">
-                            <a id="shortened-link" href="{{ short_url }}" target="_blank" class="text-indigo-400 break-all flex-grow">{{ short_url }}</a>
-                            <button onclick="copyToClipboard()" class="ml-4 text-slate-400 hover:text-white transition">
+                        <div class="flex items-center bg-white dark:bg-slate-900 rounded-lg p-3 border border-gray-300 dark:border-slate-600">
+                            <a id="shortened-link" href="{{ short_url }}" target="_blank" class="text-indigo-600 dark:text-indigo-400 break-all flex-grow">{{ short_url }}</a>
+                            <button onclick="copyToClipboard()" class="ml-4 text-gray-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition">
                                 <i class="fa-solid fa-copy"></i>
                             </button>
                         </div>
@@ -117,27 +151,27 @@
 
         <!-- URL History -->
         {% if urls %}
-        <div class="glass-card rounded-2xl p-6 md:p-8 w-full max-w-2xl shadow-2xl mt-8">
-            <h2 class="text-2xl font-bold text-center mb-6">Your Link History</h2>
+        <div class="card rounded-2xl p-6 md:p-8 w-full max-w-2xl shadow-2xl mt-8">
+            <h2 class="text-2xl font-bold text-center mb-6 text-slate-900 dark:text-white">Your Link History</h2>
             <div class="history-container max-h-80 overflow-y-auto pr-2">
                 <table class="w-full text-left">
-                    <thead class="sticky top-0 bg-slate-900/50 backdrop-blur-sm">
+                    <thead class="sticky top-0 bg-gray-100/50 dark:bg-slate-900/50 backdrop-blur-sm">
                         <tr>
-                            <th class="p-3">Short Link</th>
-                            <th class="p-3 hidden md:table-cell">Original URL</th>
-                            <th class="p-3 text-center">Clicks</th>
+                            <th class="p-3 text-slate-700 dark:text-slate-300">Short Link</th>
+                            <th class="p-3 hidden md:table-cell text-slate-700 dark:text-slate-300">Original URL</th>
+                            <th class="p-3 text-center text-slate-700 dark:text-slate-300">Clicks</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for url in urls %}
-                        <tr class="border-b border-slate-700 hover:bg-slate-800/50 transition-colors">
+                        <tr class="border-b border-gray-200 dark:border-slate-700 hover:bg-gray-200/50 dark:hover:bg-slate-800/50 transition-colors">
                             <td class="p-3">
-                                <a href="{{ request.scheme }}://{{ request.get_host }}/{{ url.short_code }}" target="_blank" class="text-indigo-400 hover:underline">{{ request.scheme }}://{{ request.get_host }}/{{ url.short_code }}</a>
+                                <a href="{{ request.scheme }}://{{ request.get_host }}/{{ url.short_code }}" target="_blank" class="text-indigo-600 dark:text-indigo-400 hover:underline">{{ request.scheme }}://{{ request.get_host }}/{{ url.short_code }}</a>
                             </td>
-                            <td class="p-3 text-slate-400 truncate hidden md:table-cell" title="{{ url.original_url }}">
+                            <td class="p-3 text-gray-600 dark:text-slate-400 truncate hidden md:table-cell" title="{{ url.original_url }}">
                                 {{ url.original_url|truncatechars:50 }}
                             </td>
-                            <td class="p-3 text-center font-bold text-xl">
+                            <td class="p-3 text-center font-bold text-xl text-slate-700 dark:text-slate-200">
                                 {{ url.clicks }}
                             </td>
                         </tr>
@@ -152,59 +186,96 @@
     <!-- Particles.js script -->
     <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
     <script>
-        // Initialize Particles.js
-        particlesJS("particles-js", {
-            "particles": {
-                "number": { "value": 80, "density": { "enable": true, "value_area": 800 } },
-                "color": { "value": "#4f46e5" },
-                "shape": { "type": "circle", "stroke": { "width": 0, "color": "#000000" }, "polygon": { "nb_sides": 5 } },
-                "opacity": { "value": 0.5, "random": false, "anim": { "enable": false, "speed": 1, "opacity_min": 0.1, "sync": false } },
-                "size": { "value": 3, "random": true, "anim": { "enable": false, "speed": 40, "size_min": 0.1, "sync": false } },
-                "line_linked": { "enable": true, "distance": 150, "color": "#ffffff", "opacity": 0.1, "width": 1 },
-                "move": { "enable": true, "speed": 2, "direction": "none", "random": false, "straight": false, "out_mode": "out", "bounce": false, "attract": { "enable": false, "rotateX": 600, "rotateY": 1200 } }
+        // --- Particle JS Configurations ---
+        const lightThemeParticles = {
+            particles: {
+                number: { value: 80, density: { enable: true, value_area: 800 } },
+                color: { value: "#4338ca" }, // Darker indigo for light bg
+                shape: { type: "circle" },
+                opacity: { value: 0.6, random: true },
+                size: { value: 4, random: true },
+                line_linked: { enable: true, distance: 150, color: "#6366f1", opacity: 0.4, width: 1 },
+                move: { enable: true, speed: 3, direction: "none", random: true, straight: false, out_mode: "out" }
             },
-            "interactivity": {
-                "detect_on": "canvas",
-                "events": { "onhover": { "enable": true, "mode": "grab" }, "onclick": { "enable": true, "mode": "push" }, "resize": true },
-                "modes": { "grab": { "distance": 140, "line_linked": { "opacity": 0.3 } }, "bubble": { "distance": 400, "size": 40, "duration": 2, "opacity": 8, "speed": 3 }, "repulse": { "distance": 200, "duration": 0.4 }, "push": { "particles_nb": 4 }, "remove": { "particles_nb": 2 } }
+            interactivity: {
+                detect_on: "canvas",
+                events: { onhover: { enable: true, mode: "grab" }, onclick: { enable: true, mode: "push" }, resize: true },
+                modes: { grab: { distance: 150, line_linked: { opacity: 1 } }, push: { particles_nb: 4 } }
             },
-            "retina_detect": true
-        });
+            retina_detect: true
+        };
 
-        // Copy to clipboard function
+        const darkThemeParticles = {
+            particles: {
+                number: { value: 80, density: { enable: true, value_area: 800 } },
+                color: { value: "#4f46e5" },
+                shape: { type: "circle" },
+                opacity: { value: 0.5, random: false },
+                size: { value: 3, random: true },
+                line_linked: { enable: true, distance: 150, color: "#ffffff", opacity: 0.1, width: 1 },
+                move: { enable: true, speed: 2, direction: "none", random: false, straight: false, out_mode: "out" }
+            },
+            interactivity: {
+                detect_on: "canvas",
+                events: { onhover: { enable: true, mode: "grab" }, onclick: { enable: true, mode: "push" }, resize: true },
+                modes: { grab: { distance: 140, line_linked: { opacity: 0.3 } }, push: { particles_nb: 4 } }
+            },
+            retina_detect: true
+        };
+
+        function loadParticles(themeConfig) {
+             // pJSDom[0] is a global variable from particles.js to hold the instance
+            if (window.pJSDom && window.pJSDom[0]) {
+                window.pJSDom[0].pJS.fn.vendors.destroypJS();
+                window.pJSDom = [];
+            }
+            particlesJS("particles-js", themeConfig);
+        }
+
+        // --- Theme Toggling Logic ---
+        const themeToggleBtn = document.getElementById('theme-toggle');
+        const themeToggleDarkIcon = document.getElementById('theme-toggle-dark-icon');
+        const themeToggleLightIcon = document.getElementById('theme-toggle-light-icon');
+
+        function updateTheme() {
+            if (document.documentElement.classList.contains('dark')) {
+                themeToggleLightIcon.classList.remove('hidden');
+                themeToggleDarkIcon.classList.add('hidden');
+                loadParticles(darkThemeParticles);
+            } else {
+                themeToggleLightIcon.classList.add('hidden');
+                themeToggleDarkIcon.classList.remove('hidden');
+                loadParticles(lightThemeParticles);
+            }
+        }
+        
+        themeToggleBtn.addEventListener('click', () => {
+            document.documentElement.classList.toggle('dark');
+            if (document.documentElement.classList.contains('dark')) {
+                localStorage.theme = 'dark';
+            } else {
+                localStorage.theme = 'light';
+            }
+            updateTheme();
+        });
+        
+        // Initial theme and particle setup on load
+        updateTheme();
+
+
+        // --- Copy to Clipboard Function ---
         function copyToClipboard() {
             const linkElement = document.getElementById('shortened-link');
             const textToCopy = linkElement.href;
             
-            // Use the Clipboard API
             navigator.clipboard.writeText(textToCopy).then(() => {
-                // Visual feedback
-                const icon = document.querySelector('.fa-copy').parentElement;
-                icon.innerHTML = '<i class="fa-solid fa-check text-green-400"></i>';
+                const iconContainer = linkElement.nextElementSibling;
+                iconContainer.innerHTML = '<i class="fa-solid fa-check text-green-500"></i>';
                 setTimeout(() => {
-                    icon.innerHTML = '<i class="fa-solid fa-copy"></i>';
+                    iconContainer.innerHTML = '<i class="fa-solid fa-copy"></i>';
                 }, 2000);
             }).catch(err => {
                 console.error('Failed to copy: ', err);
-                // Fallback for older browsers
-                try {
-                    const textArea = document.createElement("textarea");
-                    textArea.value = textToCopy;
-                    document.body.appendChild(textArea);
-                    textArea.focus();
-                    textArea.select();
-                    document.execCommand('copy');
-                    document.body.removeChild(textArea);
-                    
-                    const icon = document.querySelector('.fa-copy').parentElement;
-                    icon.innerHTML = '<i class="fa-solid fa-check text-green-400"></i>';
-                    setTimeout(() => {
-                        icon.innerHTML = '<i class="fa-solid fa-copy"></i>';
-                    }, 2000);
-
-                } catch (e) {
-                     console.error('Fallback copy failed: ', e);
-                }
             });
         }
     </script>
