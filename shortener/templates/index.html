@@ -2,30 +2,211 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>URL Shortener</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.3.2/dist/tailwind.min.css" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quantum URL Shortener</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+        /* Custom styles */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a; /* slate-900 */
+        }
+        #particles-js {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .btn-gradient {
+            background-image: linear-gradient(to right, #4f46e5, #7c3aed);
+            transition: all 0.3s ease;
+        }
+        .btn-gradient:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        /* Custom scrollbar for URL history */
+        .history-container::-webkit-scrollbar {
+            width: 8px;
+        }
+        .history-container::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+        .history-container::-webkit-scrollbar-thumb {
+            background: #4f46e5;
+            border-radius: 10px;
+        }
+        .history-container::-webkit-scrollbar-thumb:hover {
+            background: #7c3aed;
+        }
+    </style>
 </head>
-<body class="bg-gray-100 flex items-center justify-center min-h-screen">
-    <div class="bg-white shadow-lg rounded-lg p-8 w-full max-w-md">
-        <h1 class="text-3xl font-bold text-center mb-6">Smart URL Shortener</h1>
-        <form method="POST" class="flex flex-col space-y-4">
-            {% csrf_token %}
-            <input type="url" name="original_url" placeholder="Enter your long URL" required
-                class="border rounded p-2 focus:outline-none focus:ring-2 focus:ring-indigo-400">
-            <input type="text" name="custom_code" placeholder="Optional: Custom short code"
-                class="border rounded p-2 focus:outline-none focus:ring-2 focus:ring-indigo-400">
-            <button type="submit" class="bg-indigo-500 text-white rounded p-2 hover:bg-indigo-600">Shorten URL</button>
-        </form>
+<body class="text-white">
+    <!-- Particle background container -->
+    <div id="particles-js"></div>
 
-        {% if short_url %}
-        <div class="mt-6 text-center">
-            <p class="text-gray-700 font-semibold">Your Short URL:</p>
-            <a href="{{ short_url }}" class="text-indigo-600 break-all">{{ short_url }}</a>
-            <div class="mt-4">
-                <img src="data:image/png;base64,{{ qr_code }}" class="mx-auto w-32 h-32" />
+    <div class="container mx-auto px-4 py-8 flex flex-col items-center justify-center min-h-screen">
+        
+        <!-- Main Card -->
+        <div class="glass-card rounded-2xl p-6 md:p-8 w-full max-w-2xl shadow-2xl">
+            <div class="text-center mb-8">
+                <h1 class="text-4xl md:text-5xl font-black tracking-tight">Quantum Shortener</h1>
+                <p class="text-slate-400 mt-2">The smartest link shortener in the universe</p>
+            </div>
+
+            <!-- Form -->
+            <form method="POST" class="flex flex-col space-y-4">
+                {% csrf_token %}
+                <div class="relative">
+                    <i class="fa-solid fa-link absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                    <input type="url" name="original_url" placeholder="Enter your long URL to shorten..." required
+                           class="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 pl-12 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all">
+                </div>
+                <div class="relative">
+                    <i class="fa-solid fa-wand-magic-sparkles absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                    <input type="text" name="custom_code" placeholder="Optional: Enter a custom alias"
+                           class="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 pl-12 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all">
+                </div>
+                <button type="submit" class="btn-gradient text-white font-bold rounded-lg p-3 text-lg shadow-lg">
+                    Shorten!
+                </button>
+            </form>
+
+            <!-- Error Message Display -->
+            {% if error %}
+            <div class="mt-4 bg-red-500/20 border border-red-500 text-red-300 px-4 py-3 rounded-lg text-center" role="alert">
+                <strong class="font-bold">Oops!</strong>
+                <span class="block sm:inline">{{ error }}</span>
+            </div>
+            {% endif %}
+
+            <!-- Result Display -->
+            {% if short_url %}
+            <div class="mt-8 p-6 bg-slate-800 rounded-2xl border border-slate-700">
+                <p class="text-slate-400 font-semibold text-center">Your quantum link is ready!</p>
+                <div class="mt-4 flex flex-col md:flex-row items-center gap-4">
+                    <div class="flex-grow w-full">
+                        <div class="flex items-center bg-slate-900 rounded-lg p-3 border border-slate-600">
+                            <a id="shortened-link" href="{{ short_url }}" target="_blank" class="text-indigo-400 break-all flex-grow">{{ short_url }}</a>
+                            <button onclick="copyToClipboard()" class="ml-4 text-slate-400 hover:text-white transition">
+                                <i class="fa-solid fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="flex-shrink-0 bg-white p-2 rounded-lg">
+                        <img src="data:image/png;base64,{{ qr_code }}" class="w-24 h-24" alt="QR Code" />
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- URL History -->
+        {% if urls %}
+        <div class="glass-card rounded-2xl p-6 md:p-8 w-full max-w-2xl shadow-2xl mt-8">
+            <h2 class="text-2xl font-bold text-center mb-6">Your Link History</h2>
+            <div class="history-container max-h-80 overflow-y-auto pr-2">
+                <table class="w-full text-left">
+                    <thead class="sticky top-0 bg-slate-900/50 backdrop-blur-sm">
+                        <tr>
+                            <th class="p-3">Short Link</th>
+                            <th class="p-3 hidden md:table-cell">Original URL</th>
+                            <th class="p-3 text-center">Clicks</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for url in urls %}
+                        <tr class="border-b border-slate-700 hover:bg-slate-800/50 transition-colors">
+                            <td class="p-3">
+                                <a href="{{ request.scheme }}://{{ request.get_host }}/{{ url.short_code }}" target="_blank" class="text-indigo-400 hover:underline">{{ request.scheme }}://{{ request.get_host }}/{{ url.short_code }}</a>
+                            </td>
+                            <td class="p-3 text-slate-400 truncate hidden md:table-cell" title="{{ url.original_url }}">
+                                {{ url.original_url|truncatechars:50 }}
+                            </td>
+                            <td class="p-3 text-center font-bold text-xl">
+                                {{ url.clicks }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div>
         {% endif %}
     </div>
+
+    <!-- Particles.js script -->
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script>
+        // Initialize Particles.js
+        particlesJS("particles-js", {
+            "particles": {
+                "number": { "value": 80, "density": { "enable": true, "value_area": 800 } },
+                "color": { "value": "#4f46e5" },
+                "shape": { "type": "circle", "stroke": { "width": 0, "color": "#000000" }, "polygon": { "nb_sides": 5 } },
+                "opacity": { "value": 0.5, "random": false, "anim": { "enable": false, "speed": 1, "opacity_min": 0.1, "sync": false } },
+                "size": { "value": 3, "random": true, "anim": { "enable": false, "speed": 40, "size_min": 0.1, "sync": false } },
+                "line_linked": { "enable": true, "distance": 150, "color": "#ffffff", "opacity": 0.1, "width": 1 },
+                "move": { "enable": true, "speed": 2, "direction": "none", "random": false, "straight": false, "out_mode": "out", "bounce": false, "attract": { "enable": false, "rotateX": 600, "rotateY": 1200 } }
+            },
+            "interactivity": {
+                "detect_on": "canvas",
+                "events": { "onhover": { "enable": true, "mode": "grab" }, "onclick": { "enable": true, "mode": "push" }, "resize": true },
+                "modes": { "grab": { "distance": 140, "line_linked": { "opacity": 0.3 } }, "bubble": { "distance": 400, "size": 40, "duration": 2, "opacity": 8, "speed": 3 }, "repulse": { "distance": 200, "duration": 0.4 }, "push": { "particles_nb": 4 }, "remove": { "particles_nb": 2 } }
+            },
+            "retina_detect": true
+        });
+
+        // Copy to clipboard function
+        function copyToClipboard() {
+            const linkElement = document.getElementById('shortened-link');
+            const textToCopy = linkElement.href;
+            
+            // Use the Clipboard API
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                // Visual feedback
+                const icon = document.querySelector('.fa-copy').parentElement;
+                icon.innerHTML = '<i class="fa-solid fa-check text-green-400"></i>';
+                setTimeout(() => {
+                    icon.innerHTML = '<i class="fa-solid fa-copy"></i>';
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+                // Fallback for older browsers
+                try {
+                    const textArea = document.createElement("textarea");
+                    textArea.value = textToCopy;
+                    document.body.appendChild(textArea);
+                    textArea.focus();
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                    
+                    const icon = document.querySelector('.fa-copy').parentElement;
+                    icon.innerHTML = '<i class="fa-solid fa-check text-green-400"></i>';
+                    setTimeout(() => {
+                        icon.innerHTML = '<i class="fa-solid fa-copy"></i>';
+                    }, 2000);
+
+                } catch (e) {
+                     console.error('Fallback copy failed: ', e);
+                }
+            });
+        }
+    </script>
 </body>
 </html>
